@@ -10,6 +10,7 @@
 - Created GitHub repository for the project.
 - Added README file with project overview and basic information.
 - Uploaded project description to the repository.
+- Created backend structure.
 
 ---
 
