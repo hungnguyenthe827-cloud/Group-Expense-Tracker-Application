@@ -15,9 +15,9 @@ This is a web application that helps groups manage shared expenses such as trips
 - Database: MySQL
 
 ## Team Members
-- Member 1: Backend
-- Member 2: Database & Algorithm
-- Member 3: Frontend
+- Nguyễn Thế Hưng: Backend
+- Nguyễn Phương Ly: Database & Algorithm
+- Nguyễn Thùy Trang: Frontend
 
 ## Project Status
 - Week 1: Project idea & description completed
