@@ -71,3 +71,17 @@ export default defineConfig([
   },
 ])
 ```
+
+Expected API:
+
+POST /api/auth/login
+Body: { email, password }
+
+POST /api/auth/register
+Body: { name, email, password }
+
+Response:
+{
+  user: { id, name, email },
+  token: string
+}

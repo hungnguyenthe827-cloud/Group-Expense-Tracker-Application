@@ -1,37 +1,39 @@
-import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import Button from "../../components/common/Button";
-import Input from "../../components/common/Input";
-
-type FormData = {
-  name: string;
-  email: string;
-  password: string;
-};
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register, handleSubmit } = useForm<FormData>();
-
-  const onSubmit = (data: FormData) => {
-    console.log("Register Data:", data);
-
-    // MOCK
-    alert("Register success (mock)");
-    navigate("/");
-  };
 
   return (
-    <div style={{ maxWidth: "300px", margin: "50px auto" }}>
-      <h2>Register</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Input label="Name" name="name" register={register} />
-        <Input label="Email" name="email" register={register} />
-        <Input label="Password" name="password" type="password" register={register} />
+      <div className="w-[380px] bg-white p-8 rounded-2xl shadow-xl">
 
-        <Button type="submit">Register</Button>
-      </form>
+        <h2 className="text-2xl font-semibold mb-6">Create Account</h2>
+
+        <input className="input" placeholder="Full Name" />
+        <input className="input" placeholder="Email Address" />
+        <input type="password" className="input" placeholder="Password" />
+
+        <button className="btn-primary">Create Account</button>
+
+        <button
+          onClick={() => window.location.href = "http://localhost:5000/api/auth/google"}
+          className="w-full mt-3 border border-gray-300 py-3 rounded-lg"
+        >
+          Continue with Google
+        </button>
+
+        <p className="text-sm text-center mt-5">
+          Already have account?{" "}
+          <span
+            onClick={() => navigate("/")}
+            className="text-indigo-600 cursor-pointer font-medium"
+          >
+            Login
+          </span>
+        </p>
+
+      </div>
     </div>
   );
 }

@@ -1,26 +1,37 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Signup() {
   const navigate = useNavigate();
 
+  const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [errors, setErrors] = useState({
+    fullname: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
 
     let newErrors = {
+      fullname: "",
       email: "",
       password: "",
+      confirmPassword: "",
     };
 
     let isValid = true;
+
+    if (!fullname.trim()) {
+      newErrors.fullname = "Please enter your full name";
+      isValid = false;
+    }
 
     if (!email) {
       newErrors.email = "Please enter your email";
@@ -28,7 +39,15 @@ export default function Login() {
     }
 
     if (!password) {
-      newErrors.password = "Please enter your password";
+      newErrors.password = "Please enter a password";
+      isValid = false;
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+      isValid = false;
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
       isValid = false;
     }
 
@@ -36,8 +55,8 @@ export default function Login() {
 
     if (!isValid) return;
 
-    localStorage.setItem("token", "fake-token");
-    navigate("/dashboard");
+    alert("Sign up successful!");
+    navigate("/");
   };
 
   return (
@@ -55,10 +74,25 @@ export default function Login() {
 
       {/* FORM */}
       <form
-        onSubmit={handleLogin}
+        onSubmit={handleSignup}
         className="bg-white p-8 rounded-2xl shadow-md w-80"
       >
-        <h2 className="text-lg font-semibold mb-4 text-center">Login</h2>
+        <h2 className="text-lg font-semibold mb-4 text-center">Sign Up</h2>
+
+        {/* FULLNAME */}
+        <input
+          type="text"
+          placeholder="Full name"
+          className={`w-full p-2 border rounded mb-1 ${
+            errors.fullname ? "border-red-500" : ""
+          }`}
+          value={fullname}
+          onChange={(e) => setFullname(e.target.value)}
+        />
+
+        {errors.fullname && (
+          <p className="text-red-500 text-sm mb-2">{errors.fullname}</p>
+        )}
 
         {/* EMAIL */}
         <input
@@ -87,34 +121,42 @@ export default function Login() {
         />
 
         {errors.password && (
-          <p className="text-red-500 text-sm mb-3">{errors.password}</p>
+          <p className="text-red-500 text-sm mb-2">{errors.password}</p>
         )}
 
-        {/* LOGIN BUTTON */}
+        {/* CONFIRM PASSWORD */}
+        <input
+          type="password"
+          placeholder="Confirm password"
+          className={`w-full p-2 border rounded mb-1 ${
+            errors.confirmPassword ? "border-red-500" : ""
+          }`}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+
+        {errors.confirmPassword && (
+          <p className="text-red-500 text-sm mb-3">
+            {errors.confirmPassword}
+          </p>
+        )}
+
+        {/* BUTTON */}
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded mb-3"
+          className="w-full bg-indigo-500 text-white py-2 rounded mb-3"
         >
-          Login
+          Sign Up
         </button>
 
-        {/* GOOGLE */}
-        <button
-          type="button"
-          className="w-full border py-2 rounded mb-3"
-          onClick={() => alert("Google login chưa connect backend")}
-        >
-          Login with Google
-        </button>
-
-        {/* SIGNUP LINK */}
+        {/* BACK */}
         <p className="text-sm text-center">
-          Chưa có tài khoản?{" "}
+          Đã có tài khoản?{" "}
           <span
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/")}
             className="text-indigo-600 cursor-pointer hover:underline"
           >
-            Sign up
+            Login
           </span>
         </p>
       </form>

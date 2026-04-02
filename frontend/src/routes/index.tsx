@@ -1,28 +1,58 @@
 import { Routes, Route } from "react-router-dom";
-import MainLayout from "../components/layout/MainLayout";
+
 import Login from "../pages/auth/Login";
+import Signup from "../pages/auth/Signup";
 import Dashboard from "../pages/dashboard/Dashboard";
+
+import CreateGroup from "../pages/group/Creategroup";
+import JoinGroup from "../pages/group/JoinGroup";
+import GroupDetail from "../pages/group/GroupDetail";
+
 import ProtectedRoute from "./ProtectedRoute";
-import Register from "../pages/auth/Register";
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Public */}
-      <Route path="/" element={<Login />} />
-      <Route path="/register" element={<Register />} />
 
-      {/* Protected */}
+      <Route path="/" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <MainLayout>
-              <Dashboard />
-            </MainLayout>
+            <Dashboard />
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/create-group"
+        element={
+          <ProtectedRoute>
+            <CreateGroup />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/join-group"
+        element={
+          <ProtectedRoute>
+            <JoinGroup />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/group/:id"
+        element={
+          <ProtectedRoute>
+            <GroupDetail />
+          </ProtectedRoute>
+        }
+      />
+
     </Routes>
   );
 }
