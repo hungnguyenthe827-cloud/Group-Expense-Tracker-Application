@@ -1,22 +1,16 @@
-# Bước 1: Sử dụng hình ảnh Maven để build dự án
-FROM maven:3.8.5-openjdk-17 AS build
+# Bước 1: Build dự án bằng Maven và Java 17 (Dùng Temurin)
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
-
-# Copy toàn bộ code vào trong container
 COPY . .
-
-# Chạy lệnh build để tạo ra file .jar (bỏ qua chạy thử nghiệm để build nhanh hơn)
 RUN mvn clean package -DskipTests
 
-# Bước 2: Sử dụng hình ảnh Java gọn nhẹ để chạy app
-FROM openjdk:17-jdk-slim
+# Bước 2: Chạy dự án bằng JRE 17 gọn nhẹ
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
-
-# Copy file .jar đã build từ bước 1 sang bước 2
 COPY --from=build /app/target/*.jar app.jar
 
-# Mở cổng 8080
+# Mở cổng 8080 cho Render
 EXPOSE 8080
 
-# Lệnh khởi chạy ứng dụng
+# Lệnh khởi chạy
 ENTRYPOINT ["java", "-jar", "app.jar"]
