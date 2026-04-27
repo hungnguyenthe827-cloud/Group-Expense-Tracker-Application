@@ -21,7 +21,7 @@ public class MemberController {
 
     // Lấy thành viên THEO PHÒNG
     @GetMapping
-    public List<Member> getAll(@RequestParam String groupId) {
+    public List<Member> getAll(@RequestParam("groupId") String groupId) {
         return repository.findByGroupId(groupId);
     }
 
@@ -37,7 +37,7 @@ public class MemberController {
 
     // Reset CHỈ XÓA dữ liệu của phòng đó
     @DeleteMapping("/reset")
-    public void reset(@RequestParam String groupId) {
+    public void reset(@RequestParam("groupId") String groupId) {
         expenseRepository.deleteByGroupId(groupId);
         repository.deleteByGroupId(groupId);
     }
