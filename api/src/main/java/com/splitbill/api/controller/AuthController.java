@@ -1,7 +1,7 @@
 package com.splitbill.api.controller;
 
-import com.splitbill.api.entity.User; // Import từ package entity
-import com.splitbill.api.repository.UserRepository; // Import từ package repository
+import com.splitbill.api.entity.User;
+import com.splitbill.api.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,5 +25,19 @@ public class AuthController {
             return ResponseEntity.ok(user.get());
         }
         return ResponseEntity.status(401).body("Unauthorized");
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody User newUser) {
+        // Kiểm tra xem email đã tồn tại chưa
+        Optional<User> existingUser = userRepository.findByEmail(newUser.getEmail());
+
+        if (existingUser.isPresent()) {
+            return ResponseEntity.status(400).body("Email đã được sử dụng");
+        }
+
+        // Lưu user mới vào Database
+        User savedUser = userRepository.save(newUser);
+        return ResponseEntity.ok(savedUser);
     }
 }
