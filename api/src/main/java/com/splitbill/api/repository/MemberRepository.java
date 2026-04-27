@@ -9,8 +9,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, String> {
-    List<Member> findByGroupId(String groupId); // Lấy thành viên theo phòng
+    List<Member> findByGroupId(String groupId);
 
-    @Transactional
-    void deleteByGroupId(String groupId); // Xóa sạch thành viên trong phòng đó
+    void deleteByGroupId(String groupId);
 }
