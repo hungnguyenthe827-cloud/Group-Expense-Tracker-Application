@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "/api/members")
+@Table(name = "members") // SỬA LẠI ĐÚNG NHƯ THẾ NÀY
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
