@@ -23,6 +23,9 @@ public class Expense {
 
     @Column(nullable = false)
     private String paidBy;
+    // Thêm vào trong class Expense
+    @Column(name = "group_id")
+    private String groupId;
 
     // Quan trọng nhất: Giúp lưu danh sách ID người được chia tiền
     @ElementCollection

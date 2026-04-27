@@ -17,8 +17,8 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public List<Expense> getAll() {
-        return repository.findAll();
+    public List<Expense> getAll(@RequestParam String groupId) {
+        return repository.findByGroupId(groupId);
     }
 
     @PostMapping

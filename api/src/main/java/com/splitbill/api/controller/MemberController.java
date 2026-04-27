@@ -14,31 +14,31 @@ public class MemberController {
     private final MemberRepository repository;
     private final ExpenseRepository expenseRepository;
 
-    // 2. Constructor PHẢI có đủ cả 2 repository như thế này
     public MemberController(MemberRepository repository, ExpenseRepository expenseRepository) {
         this.repository = repository;
         this.expenseRepository = expenseRepository;
     }
 
+    // Lấy thành viên NHƯNG chỉ lấy của đúng phòng đó
     @GetMapping
-    public List<Member> getAllMembers() {
-        return repository.findAll();
+    public List<Member> getAll(@RequestParam String groupId) {
+        return repository.findByGroupId(groupId);
     }
 
     @PostMapping
-    public Member addMember(@RequestBody Member member) {
+    public Member add(@RequestBody Member member) {
         return repository.save(member);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteMember(@PathVariable String id) {
+    public void delete(@PathVariable String id) {
         repository.deleteById(id);
     }
 
-    // 3. Hàm Reset xóa theo thứ tự để tránh lỗi khóa ngoại (Foreign Key)
+    // Reset NHƯNG chỉ xóa dữ liệu của đúng phòng đó
     @DeleteMapping("/reset")
-    public void resetAll() {
-        expenseRepository.deleteAll(); // Xóa con trước (Khoản chi)
-        repository.deleteAll(); // Xóa cha sau (Thành viên)
+    public void reset(@RequestParam String groupId) {
+        expenseRepository.deleteByGroupId(groupId);
+        repository.deleteByGroupId(groupId);
     }
 }

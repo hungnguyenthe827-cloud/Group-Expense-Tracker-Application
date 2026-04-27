@@ -16,6 +16,9 @@ public class Member {
 
     @Column(nullable = false)
     private String name;
+    // Thêm vào trong class Member
+    @Column(name = "group_id")
+    private String groupId;
 
     private Long createdAt = System.currentTimeMillis();
 }
