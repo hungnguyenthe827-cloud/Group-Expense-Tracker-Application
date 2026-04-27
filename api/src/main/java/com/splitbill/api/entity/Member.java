@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "members") // SỬA LẠI ĐÚNG NHƯ THẾ NÀY
+@Table(name = "members") // Tôn trọng ý kiến Sếp, giữ nguyên tên bảng!
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,7 +16,7 @@ public class Member {
 
     @Column(nullable = false)
     private String name;
-    // Thêm vào trong class Member
+
     @Column(name = "group_id")
     private String groupId;
 

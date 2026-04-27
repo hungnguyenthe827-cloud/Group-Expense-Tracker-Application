@@ -1,9 +1,13 @@
 package com.splitbill.api.controller;
 
+import com.splitbill.api.dto.DebtResponse;
 import com.splitbill.api.entity.Member;
 import com.splitbill.api.repository.MemberRepository;
 import com.splitbill.api.repository.ExpenseRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -11,34 +15,41 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class MemberController {
 
-    private final MemberRepository repository;
-    private final ExpenseRepository expenseRepository;
+    @Autowired
+    private MemberRepository memberRepository;
 
-    public MemberController(MemberRepository repository, ExpenseRepository expenseRepository) {
-        this.repository = repository;
-        this.expenseRepository = expenseRepository;
-    }
+    @Autowired
+    private ExpenseRepository expenseRepository;
 
-    // Lấy thành viên THEO PHÒNG
     @GetMapping
-    public List<Member> getAll(@RequestParam("groupId") String groupId) {
-        return repository.findByGroupId(groupId);
+    public ResponseEntity<List<Member>> getMembersByGroup(@RequestParam String groupId) {
+        return ResponseEntity.ok(memberRepository.findByGroupId(groupId));
     }
 
     @PostMapping
-    public Member add(@RequestBody Member member) {
-        return repository.save(member);
+    public ResponseEntity<Member> addMember(@RequestBody Member member) {
+        return ResponseEntity.ok(memberRepository.save(member));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable String id) {
-        repository.deleteById(id);
+    public ResponseEntity<?> deleteMember(@PathVariable Long id) {
+        memberRepository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 
-    // Reset CHỈ XÓA dữ liệu của phòng đó
+    // API cực mạnh: Reset xóa sạch mọi thứ của nhóm đó
     @DeleteMapping("/reset")
-    public void reset(@RequestParam("groupId") String groupId) {
+    public ResponseEntity<?> resetGroup(@RequestParam String groupId) {
         expenseRepository.deleteByGroupId(groupId);
-        repository.deleteByGroupId(groupId);
+        memberRepository.deleteByGroupId(groupId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Autowired
+    private com.splitbill.api.service.SettlementService settlementService;
+
+    @GetMapping("/{groupId}/settle")
+    public ResponseEntity<List<DebtResponse>> getSettlement(@PathVariable String groupId) {
+        return ResponseEntity.ok(settlementService.calculateSettlement(groupId));
     }
 }

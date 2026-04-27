@@ -4,8 +4,9 @@ import com.splitbill.api.entity.User;
 import com.splitbill.api.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import java.util.Optional; // Cần thiết để dùng Optional
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -13,31 +14,33 @@ import java.util.Optional; // Cần thiết để dùng Optional
 public class AuthController {
 
     @Autowired
-    private UserRepository userRepository; // Sếp cần tạo cái này nhé
+    private UserRepository userRepository;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-        // Tìm user trong DB
-        Optional<User> user = userRepository.findByEmail(req.getEmail());
-
-        if (user.isPresent() && user.get().getPassword().equals(req.getPassword())) {
-            // Trả về thông tin user (đúng logic nên dùng JWT token)
-            return ResponseEntity.ok(user.get());
-        }
-        return ResponseEntity.status(401).body("Unauthorized");
-    }
+    @Autowired
+    private PasswordEncoder passwordEncoder; // Gọi máy mã hóa ra
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody User newUser) {
-        // Kiểm tra xem email đã tồn tại chưa
         Optional<User> existingUser = userRepository.findByEmail(newUser.getEmail());
-
         if (existingUser.isPresent()) {
             return ResponseEntity.status(400).body("Email đã được sử dụng");
         }
 
-        // Lưu user mới vào Database
+        // MÃ HÓA MẬT KHẨU TRƯỚC KHI LƯU VÀO DATABASE
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+
         User savedUser = userRepository.save(newUser);
         return ResponseEntity.ok(savedUser);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+        Optional<User> user = userRepository.findByEmail(req.getEmail());
+
+        // KIỂM TRA MẬT KHẨU ĐÃ MÃ HÓA CÓ KHỚP VỚI PASSWORD GÕ VÀO KHÔNG
+        if (user.isPresent() && passwordEncoder.matches(req.getPassword(), user.get().getPassword())) {
+            return ResponseEntity.ok(user.get());
+        }
+        return ResponseEntity.status(401).body("Unauthorized");
     }
 }
