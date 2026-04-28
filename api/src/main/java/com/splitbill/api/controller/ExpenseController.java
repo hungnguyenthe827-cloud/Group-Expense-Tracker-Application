@@ -3,11 +3,21 @@ package com.splitbill.api.controller;
 import com.splitbill.api.entity.Expense;
 import com.splitbill.api.repository.ExpenseRepository;
 import com.splitbill.api.service.EmailService;
-
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+// --- CÁC IMPORT CẦN THIẾT ---
+import java.util.List;
+import java.util.Map; // ĐÂY LÀ DÒNG SẾP ĐANG THIẾU
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import com.splitbill.api.entity.Expense;
+import com.splitbill.api.dto.MemberStat;
+import com.splitbill.api.service.ExpenseService;
+import com.splitbill.api.service.EmailService; // Import service gửi mail
 import java.util.List;
 
 @RestController

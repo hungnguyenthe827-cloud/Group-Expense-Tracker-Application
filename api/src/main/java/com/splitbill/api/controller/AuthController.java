@@ -32,7 +32,7 @@ public class AuthController {
     private JwtUtils jwtUtils;
 
     // Sếp dán mã Client ID thật của Sếp vào đây
-    private final String GOOGLE_CLIENT_ID = "MÃ_CỦA_SẾP_KIỆT_DÁN_VÀO_ĐÂY.apps.googleusercontent.com";
+    private final String GOOGLE_CLIENT_ID = "608236410703-gqrg1eukkfceoaa9gnklgfu1s87l40oc.apps.googleusercontent.com";
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody User newUser) {
