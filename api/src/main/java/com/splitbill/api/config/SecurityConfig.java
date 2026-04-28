@@ -19,8 +19,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().permitAll());
-        return http.build(); // <--- CHÍNH LÀ DÒNG BỊ THIẾU NÀY ĐÂY!
+        return http.build();
     }
-
 }

@@ -3,7 +3,6 @@ package com.splitbill.api.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @Table(name = "expenses")
@@ -11,16 +10,15 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Expense {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(nullable = false)
-    private String title;
+    private String description; // Khớp với Frontend
 
     @Column(nullable = false)
-    private Long amount;
+    private Double amount; // Double để chia tiền lẻ chính xác
 
     @Column(nullable = false)
     private String paidBy;
@@ -30,17 +28,8 @@ public class Expense {
 
     private String splitType;
 
-    // --- MỚI BỔ SUNG: DỮ LIỆU ĐỊA LÝ (WEEK 6) ---
-    private Double latitude; // Vĩ độ (VD: 10.8231)
-    private Double longitude; // Kinh độ (VD: 106.6297)
-    private String address; // Tên địa chỉ hoặc tên quán (VD: IUH Lab 702)
-    // ------------------------------------------
-
-    @ElementCollection
-    @CollectionTable(name = "expense_custom_splits", joinColumns = @JoinColumn(name = "expense_id"))
-    @MapKeyColumn(name = "member_id")
-    @Column(name = "amount")
-    private Map<String, Long> customSplits;
+    private Double latitude;
+    private Double longitude;
 
     @ElementCollection
     @CollectionTable(name = "expense_splits", joinColumns = @JoinColumn(name = "expense_id"))

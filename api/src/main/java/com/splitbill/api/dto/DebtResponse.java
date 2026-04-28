@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DebtResponse {
-    private Long fromMemberId;
+    private String fromMemberId;
     private String fromMemberName;
-    private Long toMemberId;
+    private String toMemberId;
     private String toMemberName;
-    private Long amount;
+    private Double amount; // Đổi thành Double ở đây Sếp nhé!
 }

@@ -3,55 +3,51 @@ package com.splitbill.api.controller;
 import com.splitbill.api.entity.Expense;
 import com.splitbill.api.repository.ExpenseRepository;
 import com.splitbill.api.service.ExpenseService;
-import com.splitbill.api.service.EmailService;
-import com.splitbill.api.dto.MemberStat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/expenses")
 @CrossOrigin(origins = "*")
 public class ExpenseController {
-
     @Autowired
     private ExpenseRepository expenseRepository;
-
     @Autowired
     private ExpenseService expenseService;
 
-    @Autowired
-    private EmailService emailService;
-
     @PostMapping
-    public ResponseEntity<Expense> createExpense(@RequestBody Expense expense) {
-        return ResponseEntity.ok(expenseRepository.save(expense));
+    public ResponseEntity<Expense> create(@RequestBody Expense exp) {
+        if (exp.getCreatedAt() == null)
+            exp.setCreatedAt(System.currentTimeMillis());
+        return ResponseEntity.ok(expenseRepository.save(exp));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable String id, @RequestBody Expense req) {
+        return expenseRepository.findById(id).map(old -> {
+            old.setDescription(req.getDescription());
+            old.setAmount(req.getAmount());
+            old.setPaidBy(req.getPaidBy());
+            old.setSplitBetween(req.getSplitBetween());
+            return ResponseEntity.ok(expenseRepository.save(old));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable String id) {
+        expenseRepository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/group/{groupId}")
-    public ResponseEntity<List<Expense>> getExpensesByGroup(@PathVariable String groupId) {
+    public ResponseEntity<List<Expense>> getByGroup(@PathVariable String groupId) {
         return ResponseEntity.ok(expenseRepository.findByGroupId(groupId));
     }
 
     @GetMapping("/stats/{groupId}")
-    public ResponseEntity<List<MemberStat>> getGroupStats(@PathVariable String groupId) {
+    public ResponseEntity<?> getStats(@PathVariable String groupId) {
         return ResponseEntity.ok(expenseService.getGroupStats(groupId));
-    }
-
-    @PostMapping("/remind-debt")
-    public ResponseEntity<?> remindDebt(@RequestBody Map<String, Object> payload) {
-        try {
-            String email = (String) payload.get("email");
-            String groupName = (String) payload.get("groupName");
-            Long amount = Long.valueOf(payload.get("amount").toString());
-            
-            emailService.sendDebtReminder(email, groupName, amount);
-            return ResponseEntity.ok(Map.of("message", "Đã bắn mail đòi nợ thành công!"));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Lỗi gửi mail: " + e.getMessage());
-        }
     }
 }
