@@ -4,6 +4,8 @@ import com.splitbill.api.entity.Group;
 import com.splitbill.api.entity.GroupMember;
 import com.splitbill.api.repository.GroupMemberRepository;
 import com.splitbill.api.repository.GroupRepository;
+import com.splitbill.api.service.EmailService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,7 @@ public class GroupController {
     private GroupRepository groupRepository;
 
     @Autowired
-    private GroupMemberRepository groupMemberRepository; // Gọi thêm kho chứa Member
+    private GroupMemberRepository groupMemberRepository;
 
     // 1. Tạo nhóm mới & Thêm người tạo làm ADMIN
     @PostMapping
@@ -35,9 +37,12 @@ public class GroupController {
 
         // LƯU NGƯỜI TẠO VÀO BẢNG GROUP_MEMBERS VỚI QUYỀN ADMIN
         GroupMember adminMember = new GroupMember();
-        adminMember.setGroupId(savedGroup.getId());
-        adminMember.setUserId(groupReq.getCreatedBy());
+        // Ép kiểu về String để khớp với Entity GroupMember
+        adminMember.setGroupId(String.valueOf(savedGroup.getId()));
+        adminMember.setUserId(String.valueOf(groupReq.getCreatedBy()));
         adminMember.setRole("ADMIN");
+        adminMember.setName("Trưởng nhóm"); // Tránh lỗi DB vì name không được bỏ trống
+
         groupMemberRepository.save(adminMember);
 
         return ResponseEntity.ok(savedGroup);
@@ -59,9 +64,12 @@ public class GroupController {
 
         // LƯU NGƯỜI NHẬP MÃ VÀO BẢNG VỚI QUYỀN MEMBER
         GroupMember newMember = new GroupMember();
-        newMember.setGroupId(group.getId());
-        newMember.setUserId(userId);
+        // Ép kiểu về String để khớp với Entity GroupMember
+        newMember.setGroupId(String.valueOf(group.getId()));
+        newMember.setUserId(String.valueOf(userId));
         newMember.setRole("MEMBER");
+        newMember.setName("Thành viên mới"); // Tránh lỗi DB vì name không được bỏ trống
+
         groupMemberRepository.save(newMember);
 
         return ResponseEntity.ok(group);
@@ -72,5 +80,15 @@ public class GroupController {
     public ResponseEntity<List<Group>> getUserGroups(@PathVariable Long userId) {
         List<Group> groups = groupRepository.findByCreatedBy(userId);
         return ResponseEntity.ok(groups);
+    }
+
+    @Autowired
+    private EmailService emailService;
+
+    @GetMapping("/test-mail")
+    public String testMail() {
+        // Sếp điền một email khác của Sếp vào đây để kiểm tra hộp thư nhé
+        emailService.sendDebtReminder("email_nhan_thu@gmail.com", "Hệ thống PAYSHARE", 50000);
+        return "Đã bắn mail thử nghiệm thành công! Sếp check inbox nhé.";
     }
 }
