@@ -31,9 +31,9 @@ public class AuthController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    private final String GOOGLE_CLIENT_ID = "DÁN_MÃ_CỦA_SẾP_VÀO_ĐÂY";
+    // Sếp dán mã Client ID thật của Sếp vào đây
+    private final String GOOGLE_CLIENT_ID = "MÃ_CỦA_SẾP_KIỆT_DÁN_VÀO_ĐÂY.apps.googleusercontent.com";
 
-    // 1. ĐĂNG KÝ (Dùng Email/Pass)
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody User newUser) {
         if (userRepository.findByEmail(newUser.getEmail()).isPresent()) {
@@ -43,7 +43,6 @@ public class AuthController {
         return ResponseEntity.ok(userRepository.save(newUser));
     }
 
-    // 2. ĐĂNG NHẬP GOOGLE
     @PostMapping("/google")
     public ResponseEntity<?> googleLogin(@RequestBody TokenRequest tokenRequest) {
         try {
@@ -51,25 +50,32 @@ public class AuthController {
                     new GsonFactory())
                     .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
                     .build();
+
             GoogleIdToken idToken = verifier.verify(tokenRequest.getToken());
 
             if (idToken != null) {
                 GoogleIdToken.Payload payload = idToken.getPayload();
                 String email = payload.getEmail();
+
                 User user = userRepository.findByEmail(email).orElseGet(() -> {
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setFullName((String) payload.get("name"));
                     newUser.setPictureUrl((String) payload.get("picture"));
-                    newUser.setPassword("GOOGLE_AUTH");
+                    newUser.setPassword("GOOGLE_AUTH_NO_PASSWORD"); // Đánh dấu đây là user Google
                     return userRepository.save(newUser);
                 });
 
                 String token = jwtUtils.generateToken(email);
-                return ResponseEntity.ok(Map.of("token", token, "userId", user.getId(), "email", user.getEmail(),
-                        "fullName", user.getFullName(), "avatar", user.getPictureUrl()));
+
+                return ResponseEntity.ok(Map.of(
+                        "token", token,
+                        "userId", user.getId(),
+                        "email", user.getEmail(),
+                        "fullName", user.getFullName(),
+                        "avatar", user.getPictureUrl()));
             }
-            return ResponseEntity.status(401).body("Token không hợp lệ");
+            return ResponseEntity.status(401).body("Token Google không hợp lệ");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Lỗi hệ thống: " + e.getMessage());
         }

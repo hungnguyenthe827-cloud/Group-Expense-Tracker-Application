@@ -16,6 +16,6 @@ public class User {
 
     private String password;
     private String fullName;
-    private String pictureUrl;
+    private String pictureUrl; // Dùng chung cho cả ảnh Google
     private String role = "USER";
 }
