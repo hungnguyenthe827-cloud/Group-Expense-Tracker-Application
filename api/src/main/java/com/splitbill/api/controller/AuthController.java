@@ -6,34 +6,47 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.splitbill.api.config.JwtUtils;
 import com.splitbill.api.dto.TokenRequest;
+import com.splitbill.api.entity.User;
+import com.splitbill.api.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import com.splitbill.api.entity.User;
-import com.splitbill.api.repository.UserRepository;
+
 import java.util.Collections;
 import java.util.Map;
-
-// ... các import cũ giữ nguyên ...
-import com.splitbill.api.entity.User;
-import com.splitbill.api.repository.UserRepository;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private JwtUtils jwtUtils;
 
-    private final String GOOGLE_CLIENT_ID = "DÁN_CLIENT_ID_CỦA_SẾP_VÀO_ĐÂY";
+    private final String GOOGLE_CLIENT_ID = "DÁN_MÃ_CỦA_SẾP_VÀO_ĐÂY";
 
+    // 1. ĐĂNG KÝ (Dùng Email/Pass)
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody User newUser) {
+        if (userRepository.findByEmail(newUser.getEmail()).isPresent()) {
+            return ResponseEntity.status(400).body("Email đã được sử dụng");
+        }
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        return ResponseEntity.ok(userRepository.save(newUser));
+    }
+
+    // 2. ĐĂNG NHẬP GOOGLE
     @PostMapping("/google")
     public ResponseEntity<?> googleLogin(@RequestBody TokenRequest tokenRequest) {
         try {
-            // 1. Xác thực Token với Google
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(),
                     new GsonFactory())
                     .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
@@ -43,25 +56,18 @@ public class AuthController {
             if (idToken != null) {
                 GoogleIdToken.Payload payload = idToken.getPayload();
                 String email = payload.getEmail();
-
-                // 2. Kiểm tra/Lưu User vào Database
                 User user = userRepository.findByEmail(email).orElseGet(() -> {
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setFullName((String) payload.get("name"));
                     newUser.setPictureUrl((String) payload.get("picture"));
+                    newUser.setPassword("GOOGLE_AUTH");
                     return userRepository.save(newUser);
                 });
 
-                // 3. Tạo JWT nội bộ
                 String token = jwtUtils.generateToken(email);
-
-                return ResponseEntity.ok(Map.of(
-                        "token", token,
-                        "userId", user.getId(),
-                        "email", user.getEmail(),
-                        "fullName", user.getFullName(),
-                        "avatar", user.getPictureUrl()));
+                return ResponseEntity.ok(Map.of("token", token, "userId", user.getId(), "email", user.getEmail(),
+                        "fullName", user.getFullName(), "avatar", user.getPictureUrl()));
             }
             return ResponseEntity.status(401).body("Token không hợp lệ");
         } catch (Exception e) {
