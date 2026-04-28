@@ -13,11 +13,20 @@ import java.util.List;
 @RequestMapping("/api/members")
 @CrossOrigin(origins = "*")
 public class MemberController {
+
     @Autowired
     private SettlementService settlementService;
+
     @Autowired
     private GroupMemberRepository groupMemberRepository;
 
+    // --- CHỐT HẠ: Phải có cổng POST này thì Frontend mới Thêm người được ---
+    @PostMapping
+    public ResponseEntity<GroupMember> createMember(@RequestBody GroupMember member) {
+        return ResponseEntity.ok(groupMemberRepository.save(member));
+    }
+
+    // --- CÁC CỔNG LẤY DỮ LIỆU CŨ ---
     @GetMapping("/group/{groupId}")
     public ResponseEntity<List<GroupMember>> getMembers(@PathVariable String groupId) {
         return ResponseEntity.ok(groupMemberRepository.findByGroupId(groupId));
