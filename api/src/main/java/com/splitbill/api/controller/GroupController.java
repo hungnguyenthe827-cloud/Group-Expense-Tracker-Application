@@ -2,17 +2,20 @@ package com.splitbill.api.controller;
 
 import com.splitbill.api.entity.Group;
 import com.splitbill.api.entity.GroupMember;
+import com.splitbill.api.entity.User;
 import com.splitbill.api.repository.GroupMemberRepository;
 import com.splitbill.api.repository.GroupRepository;
+import com.splitbill.api.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/groups")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") // Mở cửa cho Vercel kết nối
 public class GroupController {
 
     @Autowired
@@ -21,78 +24,101 @@ public class GroupController {
     @Autowired
     private GroupMemberRepository groupMemberRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    // ─── 1. TẠO NHÓM MỚI (FIX LOGIC ADMIN) ───────────────────────────────
     @PostMapping
-    public ResponseEntity<?> createGroup(@RequestBody Group groupReq) {
+    public ResponseEntity<?> createGroup(@RequestBody Map<String, Object> payload) {
         try {
-            // 1. Kiểm tra dữ liệu đầu vào
-            if (groupReq.getCreatedBy() == null) {
-                return ResponseEntity.badRequest().body("Lỗi: Không tìm thấy ID người tạo nhóm!");
-            }
+            String name = (String) payload.get("name");
+            String createdBy = payload.get("createdBy").toString();
 
-            // 2. Tạo mã nhóm ngẫu nhiên
-            String randomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-            groupReq.setGroupCode(randomCode);
-            
-            // 3. Lưu nhóm
-            Group savedGroup = groupRepository.save(groupReq);
+            if (name == null || name.isEmpty()) return ResponseEntity.badRequest().body("Tên nhóm không được để trống");
 
-            // 4. Tự động thêm người tạo làm ADMIN
-            GroupMember adminMember = new GroupMember();
-            adminMember.setGroupId(String.valueOf(savedGroup.getId()));
-            adminMember.setUserId(String.valueOf(groupReq.getCreatedBy()));
-            adminMember.setRole("ADMIN");
-            adminMember.setName("Trưởng nhóm");
+            // Tạo nhóm
+            Group group = new Group();
+            group.setName(name);
+            group.setCreatedBy(Long.parseLong(createdBy));
+            group.setGroupCode(UUID.randomUUID().toString().substring(0, 6).toUpperCase());
+            Group savedGroup = groupRepository.save(group);
+
+            // Tự động thêm người tạo làm ADMIN với tên thật
+            Optional<User> userOpt = userRepository.findById(Long.parseLong(createdBy));
+            GroupMember admin = new GroupMember();
+            admin.setGroupId(String.valueOf(savedGroup.getId()));
+            admin.setUserId(createdBy);
+            admin.setRole("ADMIN");
+            admin.setName(userOpt.isPresent() ? userOpt.get().getFullName() : "Trưởng nhóm");
             
-            groupMemberRepository.save(adminMember);
-            
+            groupMemberRepository.save(admin);
+
             return ResponseEntity.ok(savedGroup);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Lỗi tạo nhóm: " + e.getMessage());
         }
     }
 
+    // ─── 2. THAM GIA NHÓM BẰNG MÃ (FIX LOGIC JOIN) ───────────────────────
     @PostMapping("/join")
     public ResponseEntity<?> joinGroup(@RequestBody Map<String, Object> payload) {
         try {
-            // 1. Chặn lỗi Frontend gửi thiếu dữ liệu
-            if (!payload.containsKey("joinCode") || !payload.containsKey("userId")) {
-                return ResponseEntity.badRequest().body("Lỗi: Thiếu mã nhóm hoặc thông tin người dùng!");
-            }
-
             String code = payload.get("joinCode").toString().trim().toUpperCase();
-            String userId = payload.get("userId").toString().trim();
+            String userId = payload.get("userId").toString();
 
-            // 2. Tìm nhóm theo mã
             Optional<Group> groupOpt = groupRepository.findByGroupCode(code);
-            if (groupOpt.isEmpty()) {
-                return ResponseEntity.status(404).body("Mã nhóm không tồn tại hoặc đã bị xóa!");
-            }
+            if (groupOpt.isEmpty()) return ResponseEntity.status(404).body("Mã nhóm không đúng!");
 
             Group group = groupOpt.get();
             String groupIdStr = String.valueOf(group.getId());
 
-            // 3. Kiểm tra user đã ở trong nhóm chưa (Tránh spam join)
-            List<GroupMember> currentMembers = groupMemberRepository.findByGroupId(groupIdStr);
-            boolean alreadyJoined = currentMembers.stream()
-                    .anyMatch(m -> userId.equals(m.getUserId()));
-            
-            if (alreadyJoined) {
-                return ResponseEntity.badRequest().body("Bạn đã là thành viên của nhóm này rồi!");
-            }
+            // Check xem đã ở trong nhóm chưa
+            boolean isJoined = groupMemberRepository.findByGroupId(groupIdStr).stream()
+                    .anyMatch(m -> m.getUserId().equals(userId));
+            if (isJoined) return ResponseEntity.badRequest().body("Sếp đã ở trong nhóm này rồi!");
 
-            // 4. Thêm thành viên mới
-            GroupMember newMember = new GroupMember();
-            newMember.setGroupId(groupIdStr);
-            newMember.setUserId(userId);
-            newMember.setRole("MEMBER");
-            newMember.setName("Thành viên " + userId.substring(0, Math.min(userId.length(), 4))); // Lấy 4 chữ cái đầu của ID làm tên tạm
-
-            groupMemberRepository.save(newMember);
+            // Lấy tên thật của User để hiển thị cho đẹp
+            Optional<User> userOpt = userRepository.findById(Long.parseLong(userId));
             
+            GroupMember member = new GroupMember();
+            member.setGroupId(groupIdStr);
+            member.setUserId(userId);
+            member.setRole("MEMBER");
+            member.setName(userOpt.isPresent() ? userOpt.get().getFullName() : "Thành viên mới");
+
+            groupMemberRepository.save(member);
             return ResponseEntity.ok(group);
-            
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Lỗi tham gia nhóm: " + e.getMessage());
+            return ResponseEntity.status(500).body("Lỗi join nhóm: " + e.getMessage());
         }
+    }
+
+    // ─── 3. LẤY DANH SÁCH NHÓM CỦA 1 USER (DÙNG CHO DASHBOARD) ──────────
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getMyGroups(@PathVariable String userId) {
+        try {
+            // Tìm tất cả các record trong GroupMember có chứa userId này
+            List<GroupMember> memberships = groupMemberRepository.findByUserId(userId);
+            
+            // Từ danh sách membership, lấy ra danh sách ID của các nhóm
+            List<Long> groupIds = memberships.stream()
+                    .map(m -> Long.parseLong(m.getGroupId()))
+                    .collect(Collectors.toList());
+
+            // Tìm thông tin chi tiết của các nhóm đó
+            List<Group> myGroups = groupRepository.findAllById(groupIds);
+            
+            return ResponseEntity.ok(myGroups);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi lấy danh sách nhóm: " + e.getMessage());
+        }
+    }
+
+    // ─── 4. LẤY THÔNG TIN CHI TIẾT 1 NHÓM QUA MÃ CODE ───────────────────
+    @GetMapping("/{code}")
+    public ResponseEntity<?> getGroupByCode(@PathVariable String code) {
+        return groupRepository.findByGroupCode(code)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
