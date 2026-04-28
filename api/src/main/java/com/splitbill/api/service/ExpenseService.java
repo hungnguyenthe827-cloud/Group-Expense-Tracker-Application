@@ -1,8 +1,8 @@
 package com.splitbill.api.service;
 
+import com.splitbill.api.dto.MemberStat;
 import com.splitbill.api.entity.Expense;
 import com.splitbill.api.entity.GroupMember;
-import com.splitbill.api.dto.MemberStat;
 import com.splitbill.api.repository.ExpenseRepository;
 import com.splitbill.api.repository.GroupMemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,21 +15,23 @@ import java.util.stream.Collectors;
 public class ExpenseService {
 
     @Autowired
-    private GroupMemberRepository groupMemberRepository;
-
-    @Autowired
     private ExpenseRepository expenseRepository;
 
+    @Autowired
+    private GroupMemberRepository groupMemberRepository;
+
     public List<MemberStat> getGroupStats(String groupId) {
+        // Gọi hàm findByGroupId đã khai báo ở Repository
         List<GroupMember> members = groupMemberRepository.findByGroupId(groupId);
         List<Expense> expenses = expenseRepository.findByGroupId(groupId);
 
         return members.stream().map(m -> {
-            long total = expenses.stream()
-                    .filter(e -> e.getPaidBy() != null && e.getPaidBy().equals(m.getId()))
-                    .mapToLong(e -> e.getAmount() != null ? e.getAmount() : 0L)
+            long totalPaid = expenses.stream()
+                    .filter(e -> e.getPaidBy().equals(m.getUserId())) // So sánh String với String
+                    .mapToLong(Expense::getAmount)
                     .sum();
-            return new MemberStat(m.getName(), total);
+            
+            return new MemberStat(m.getName(), totalPaid);
         }).collect(Collectors.toList());
     }
 }

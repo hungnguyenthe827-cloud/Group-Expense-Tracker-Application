@@ -44,8 +44,7 @@ public class AuthController {
     @PostMapping("/google")
     public ResponseEntity<?> googleLogin(@RequestBody TokenRequest tokenRequest) {
         try {
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(),
-                    new GsonFactory())
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                     .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
                     .build();
 
@@ -60,18 +59,19 @@ public class AuthController {
                     newUser.setEmail(email);
                     newUser.setFullName((String) payload.get("name"));
                     newUser.setPictureUrl((String) payload.get("picture"));
-                    newUser.setPassword("GOOGLE_AUTH_NO_PASSWORD");
+                    newUser.setPassword("GOOGLE_AUTH_NO_PASSWORD"); 
                     return userRepository.save(newUser);
                 });
 
                 String token = jwtUtils.generateToken(email);
 
                 return ResponseEntity.ok(Map.of(
-                        "token", token,
-                        "userId", user.getId(),
-                        "email", user.getEmail(),
-                        "fullName", user.getFullName(),
-                        "avatar", user.getPictureUrl()));
+                    "token", token,
+                    "userId", user.getId(),
+                    "email", user.getEmail(),
+                    "fullName", user.getFullName(),
+                    "avatar", user.getPictureUrl()
+                ));
             }
             return ResponseEntity.status(401).body("Token Google không hợp lệ");
         } catch (Exception e) {

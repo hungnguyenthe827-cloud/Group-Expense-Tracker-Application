@@ -46,9 +46,8 @@ public class ExpenseController {
         try {
             String email = (String) payload.get("email");
             String groupName = (String) payload.get("groupName");
-            // Ép kiểu an toàn từ Object sang Long
             Long amount = Long.valueOf(payload.get("amount").toString());
-
+            
             emailService.sendDebtReminder(email, groupName, amount);
             return ResponseEntity.ok(Map.of("message", "Đã bắn mail đòi nợ thành công!"));
         } catch (Exception e) {

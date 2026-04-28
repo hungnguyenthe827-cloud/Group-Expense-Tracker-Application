@@ -12,4 +12,5 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     @Transactional
     void deleteByGroupId(String groupId);
+    
 }
