@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,7 +30,7 @@ public class AuthController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    // Sếp dán mã Client ID thật của Sếp vào đây
+    // Chỉ giữ lại một dòng duy nhất với ID thật của Sếp
     private final String GOOGLE_CLIENT_ID = "608236410703-gqrg1eukkfceoaa9gnklgfu1s87l40oc.apps.googleusercontent.com";
 
     @PostMapping("/signup")
@@ -62,7 +61,7 @@ public class AuthController {
                     newUser.setEmail(email);
                     newUser.setFullName((String) payload.get("name"));
                     newUser.setPictureUrl((String) payload.get("picture"));
-                    newUser.setPassword("GOOGLE_AUTH_NO_PASSWORD"); // Đánh dấu đây là user Google
+                    newUser.setPassword("GOOGLE_AUTH_NO_PASSWORD");
                     return userRepository.save(newUser);
                 });
 

@@ -2,23 +2,15 @@ package com.splitbill.api.controller;
 
 import com.splitbill.api.entity.Expense;
 import com.splitbill.api.repository.ExpenseRepository;
-import com.splitbill.api.service.EmailService;
-import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-// --- CÁC IMPORT CẦN THIẾT ---
-import java.util.List;
-import java.util.Map; // ĐÂY LÀ DÒNG SẾP ĐANG THIẾU
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import com.splitbill.api.entity.Expense;
-import com.splitbill.api.dto.MemberStat;
 import com.splitbill.api.service.ExpenseService;
-import com.splitbill.api.service.EmailService; // Import service gửi mail
+import com.splitbill.api.service.EmailService;
+import com.splitbill.api.dto.MemberStat;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -28,34 +20,36 @@ public class ExpenseController {
     @Autowired
     private ExpenseRepository expenseRepository;
 
-    @GetMapping
-    public ResponseEntity<List<Expense>> getExpensesByGroup(@RequestParam String groupId) {
-        return ResponseEntity.ok(expenseRepository.findByGroupId(groupId));
-    }
-
-    @PostMapping
-    public ResponseEntity<Expense> addExpense(@RequestBody Expense expense) {
-        return ResponseEntity.ok(expenseRepository.save(expense));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteExpense(@PathVariable Long id) {
-        expenseRepository.deleteById(id);
-        return ResponseEntity.ok().build();
-    }
+    @Autowired
+    private ExpenseService expenseService;
 
     @Autowired
     private EmailService emailService;
 
-    // --- API BẤM NÚT ĐÒI NỢ ---
-    @PostMapping("/remind")
-    public ResponseEntity<?> remindDebt(@RequestBody Map<String, Object> payload) {
-        String email = payload.get("email").toString();
-        String fromName = payload.get("fromName").toString();
-        long amount = Long.parseLong(payload.get("amount").toString());
-
-        emailService.sendDebtReminder(email, fromName, amount);
-        return ResponseEntity.ok(Map.of("message", "Đã gửi mail nhắc nợ thành công!"));
+    @PostMapping
+    public ResponseEntity<Expense> createExpense(@RequestBody Expense expense) {
+        return ResponseEntity.ok(expenseRepository.save(expense));
     }
 
+    @GetMapping("/group/{groupId}")
+    public ResponseEntity<List<Expense>> getExpensesByGroup(@PathVariable String groupId) {
+        return ResponseEntity.ok(expenseRepository.findByGroupId(groupId));
+    }
+
+    // API lấy dữ liệu biểu đồ cho Sếp Kiệt
+    @GetMapping("/stats/{groupId}")
+    public ResponseEntity<List<MemberStat>> getGroupStats(@PathVariable String groupId) {
+        return ResponseEntity.ok(expenseService.getGroupStats(groupId));
+    }
+
+    // API đòi nợ qua Email
+    @PostMapping("/remind-debt")
+    public ResponseEntity<?> remindDebt(@RequestBody Map<String, Object> payload) {
+        String email = (String) payload.get("email");
+        String groupName = (String) payload.get("groupName");
+        Long amount = Long.valueOf(payload.get("amount").toString());
+
+        emailService.sendDebtReminder(email, groupName, amount);
+        return ResponseEntity.ok("Đã bắn mail đòi nợ thành công!");
+    }
 }
