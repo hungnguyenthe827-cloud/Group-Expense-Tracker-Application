@@ -30,7 +30,6 @@ public class AuthController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    // ID chuẩn của Sếp đã check, giữ nguyên nhé!
     private final String GOOGLE_CLIENT_ID = "608236410703-gqrg1eukkfceoaa9gnklgfu1s87l40oc.apps.googleusercontent.com";
 
     @PostMapping("/signup")

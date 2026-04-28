@@ -26,34 +26,31 @@ public class ExpenseController {
     @Autowired
     private EmailService emailService;
 
-    // 1. Tạo khoản chi tiêu mới
     @PostMapping
     public ResponseEntity<Expense> createExpense(@RequestBody Expense expense) {
         return ResponseEntity.ok(expenseRepository.save(expense));
     }
 
-    // 2. Lấy danh sách chi tiêu theo nhóm
     @GetMapping("/group/{groupId}")
     public ResponseEntity<List<Expense>> getExpensesByGroup(@PathVariable String groupId) {
         return ResponseEntity.ok(expenseRepository.findByGroupId(groupId));
     }
 
-    // 3. API lấy dữ liệu biểu đồ cho Sếp Kiệt
     @GetMapping("/stats/{groupId}")
     public ResponseEntity<List<MemberStat>> getGroupStats(@PathVariable String groupId) {
         return ResponseEntity.ok(expenseService.getGroupStats(groupId));
     }
 
-    // 4. API đòi nợ qua Email
     @PostMapping("/remind-debt")
     public ResponseEntity<?> remindDebt(@RequestBody Map<String, Object> payload) {
         try {
             String email = (String) payload.get("email");
             String groupName = (String) payload.get("groupName");
+            // Ép kiểu an toàn từ Object sang Long
             Long amount = Long.valueOf(payload.get("amount").toString());
 
             emailService.sendDebtReminder(email, groupName, amount);
-            return ResponseEntity.ok("Đã bắn mail đòi nợ thành công!");
+            return ResponseEntity.ok(Map.of("message", "Đã bắn mail đòi nợ thành công!"));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Lỗi gửi mail: " + e.getMessage());
         }
