@@ -22,4 +22,5 @@ public class SecurityConfig {
                         .anyRequest().permitAll());
         return http.build(); // <--- CHÍNH LÀ DÒNG BỊ THIẾU NÀY ĐÂY!
     }
+
 }
